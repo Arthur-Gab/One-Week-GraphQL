@@ -2,7 +2,13 @@
 Carrinho de compras, contendo seus items, o total de itens e o subtotal da compra
 """
 type Cart {
+  """Identificador unico do Carrinho"""
   id: ID!
+
+  """Items adicionados ao carrinho."""
+  items: [CartItem]!
+
+  """Quantidade Total de Itens adicionado ao carrinho"""
   totalItems: Int!
 }
 
