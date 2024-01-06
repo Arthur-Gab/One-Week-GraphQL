@@ -17,11 +17,16 @@ builder.mutationField('createCart', (t) =>
 				});
 			} catch (e) {
 				if (e instanceof PrismaClientKnownRequestError) {
-					throw new GraphQLError(e.message, {
-						extensions: {
-							code: e.code,
-						},
-					});
+					// Falha em 'CONSTRAINT UNICA', o ID já está em uso
+					if (e.code === 'P2002')
+						throw new GraphQLError(
+							`Falha na crição do carrinho. Tente outra vez.`,
+							{
+								extensions: {
+									code: `Prisma error: ${e.code}`,
+								},
+							}
+						);
 				}
 			}
 		},
