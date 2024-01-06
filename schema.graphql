@@ -1,0 +1,15 @@
+"""
+Carrinho de compras, contendo seus items, o total de itens e o subtotal da compra
+"""
+type Cart {
+  id: ID!
+  totalItems: Int!
+}
+
+type Mutation {
+  createCart: Cart!
+}
+
+type Query {
+  greetings: String!
+}
