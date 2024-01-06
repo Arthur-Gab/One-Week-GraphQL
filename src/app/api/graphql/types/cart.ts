@@ -106,7 +106,7 @@ builder.prismaObject('Cart', {
 		totalItems: t.int({
 			description: 'Quantidade Total de Itens adicionado ao carrinho',
 			resolve: async (parent) => {
-				console.log(parent);
+				// console.log(parent);
 				//@ts-ignore
 				// return parent._count.items;
 
