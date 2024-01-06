@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Pothos not passing include on Query
 
-## Getting Started
-
-First, run the development server:
+No meu <strong>prismaObject</strong> do [Cart](./src/app/api/graphql/types/cart.ts) estou adicionado a seguinte linha, no entanto, a propriedade <strong>\_count</strong> não está sendo passada corretamente para os <strong>query</strong> e nos resolvers ao utilizar um <strong>parent.\_count</strong>, recebo um erro de <strong>undefined</strong>.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+include:  {  items:  true,  _count:  true  }
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Contexto
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+generator  client {
+	provider =  "prisma-client-js"
+}
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+// Generate types for my builder
+generator  pothos {
+	provider =  "prisma-pothos-types"
+}
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+datasource  db {
+	provider =  "postgresql"
+	url =  env("POSTGRES_PRISMA_URL") // uses connection poolings
+	directUrl =  env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+model  Cart {
+	id String  @id  @default(uuid())
+	items CartItem[]
+}
+
+
+
+model  CartItem {
+	id String  @default(uuid())
+	name String
+	description String?
+	price Int
+	quantity Int
+	image String?
+
+	Cart Cart  @relation(fields: [cartId], references: [id], onDelete: Cascade)
+	cartId String
+
+	@@id([id, cartId])
+}
+```
+
+## O que essa linha deveria fazer?
+
+1.  Passar as chaves e valores definidos no include para os parametros <strong>"query"</strong>, como no exemplo abaixo
+
+```bash
+
+resolve:  async (query, __, { input: { cartId } }, { db }) => {
+
+```
+
+2. Tornar possível adicionar o valor do query nas requisições do prisma
+
+```bash
+
+const findedCart =  await db.cart.findUniqueOrThrow({
+	...query,
+	// and so on
+}
+
+```
+
+3. Adicionar aos <strong>"parent"</strong> a tipagem das chaves, valores definidas no include, por exemplo:
+
+```bash
+items: t.prismaField({
+	description:  'Items adicionados ao carrinho.',
+	type: ['CartItem'],
+	nullable: {
+		list:  false,
+		items:  true,
+	},
+	resolve:  async (_, parent) => {
+		return parent.items; // Essa tipagem
+	},
+}),
+```
+
+## O que deu errado?
+
+No meu include, estou passando <strong>\_count</strong>
+
+```bash
+include:  {  items:  true,  _count:  true  }
+```
+
+No entanto ele não está sendo passado para o <strong>query</strong> nos resolvers, vocês podem verificar essa ocorrência, no arquivo [cart.ts](./src/app/api/graphql/types/cart.ts) na linha 52 aonde executo o seguinte console.log
+
+```bash
+console.log(query); // Retonar somente {include: {items: true} } -- Linha 52
+
+const findedCart =  await db.cart.findUniqueOrThrow({
+	...query,
+	where: {
+	id: cartId,
+};
+```
