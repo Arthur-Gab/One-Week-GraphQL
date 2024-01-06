@@ -1,110 +1,99 @@
 # Pothos not passing include on Query
 
-No meu <strong>prismaObject</strong> do [Cart](./src/app/api/graphql/types/cart.ts) estou adicionado a seguinte linha, no entanto, a propriedade <strong>\_count</strong> não está sendo passada corretamente para os <strong>query</strong> e nos resolvers ao utilizar um <strong>parent.\_count</strong>, recebo um erro de <strong>undefined</strong>.
+In my <strong>prismaObject</strong> of [Cart](./src/app/api/graphql/types/cart.ts) I have added the following line, however, the property <strong>\_count</strong > it is not being passed correctly to the <strong>query</strong> and in the resolvers when using a <strong>parent.\_count</strong>, I receive an <strong>undefined</strong> error.
 
 ```bash
 include:  {  items:  true,  _count:  true  }
 ```
 
-## Contexto
+<strong>GraphQLEndpoint: http://localhost:3000/api/graphql</strong>
+
+## Context
 
 ```bash
-generator  client {
-	provider =  "prisma-client-js"
+generator  client  {
+	provider  =  "prisma-client-js"
 }
 
-
-
-// Generate types for my builder
-generator  pothos {
-	provider =  "prisma-pothos-types"
+//  Generate  types  for  my  builder
+generator  pothos  {
+	provider  =  "prisma-pothos-types"
 }
 
-
-
-datasource  db {
-	provider =  "postgresql"
-	url =  env("POSTGRES_PRISMA_URL") // uses connection poolings
-	directUrl =  env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+datasource  db  {
+	provider  =  "postgresql"
+	url  =  env("POSTGRES_PRISMA_URL") //  use  connection  poolings
+	directUrl  =  env("POSTGRES_URL_NON_POOLING") //  use  a  direct  connection
 }
 
-
-
-model  Cart {
-	id String  @id  @default(uuid())
-	items CartItem[]
+model  Cart  {
+	id  String  @id  @default(uuid())
+	items  CartItem[]
 }
 
+model  CartItem  {
+	id  String  @default(uuid())
+	name  String
+	description  String?
+	price  Int
+	quantity  Int
+	imageString?
 
+	Cart  Cart  @relation(fields: [cartId], references: [id], onDelete: Cascade)
+	cartId  String
 
-model  CartItem {
-	id String  @default(uuid())
-	name String
-	description String?
-	price Int
-	quantity Int
-	image String?
-
-	Cart Cart  @relation(fields: [cartId], references: [id], onDelete: Cascade)
-	cartId String
-
-	@@id([id, cartId])
+	@@id([id,  cartId])
 }
 ```
 
-## O que essa linha deveria fazer?
+## What is this line supposed to do?
 
-1.  Passar as chaves e valores definidos no include para os parametros <strong>"query"</strong>, como no exemplo abaixo
+1. Pass the keys and values defined in the include to the <strong>"query"</strong> parameters, as in the example below
 
 ```bash
-
-resolve:  async (query, __, { input: { cartId } }, { db }) => {
-
+resolve:  async (query, __,  {  input:  {  cartId  }  },  {  db  }) => {
 ```
 
-2. Tornar possível adicionar o valor do query nas requisições do prisma
+2. Make it possible to add the query value to Prisma requests
 
 ```bash
-
-const findedCart =  await db.cart.findUniqueOrThrow({
+const  foundCart  =  await  db.cart.findUniqueOrThrow({
 	...query,
-	// and so on
+	//  and  so  on
 }
-
 ```
 
-3. Adicionar aos <strong>"parent"</strong> a tipagem das chaves, valores definidas no include, por exemplo:
+3. Add to <strong>"parent"</strong> the typing of keys, values defined in the include, for example:
 
 ```bash
-items: t.prismaField({
-	description:  'Items adicionados ao carrinho.',
+items:  t.prismaField({
+	description:  'Items added to cart.',
 	type: ['CartItem'],
-	nullable: {
+	nullable:  {
 		list:  false,
 		items:  true,
 	},
-	resolve:  async (_, parent) => {
-		return parent.items; // Essa tipagem
+	resolve:  async (_, parent) =>  {
+		return parent.items; //  This  typing
 	},
 }),
 ```
 
-## O que deu errado?
+## What went wrong?
 
-No meu include, estou passando <strong>\_count</strong>
+In my include, I am passing <strong>\_count</strong>
 
 ```bash
 include:  {  items:  true,  _count:  true  }
 ```
 
-No entanto ele não está sendo passado para o <strong>query</strong> nos resolvers, vocês podem verificar essa ocorrência, no arquivo [cart.ts](./src/app/api/graphql/types/cart.ts) na linha 52 aonde executo o seguinte console.log
+However, it is not being passed to the <strong>query</strong> in the resolvers, you can check this occurrence in the file [cart.ts](./src/app/api/graphql/types/cart.ts) on line 52 where I execute the following console.log
 
 ```bash
-console.log(query); // Retonar somente {include: {items: true} } -- Linha 52
-
-const findedCart =  await db.cart.findUniqueOrThrow({
+console.log(query); //  Return  only  {include:  {items:  true}  }  --  Line  52
+const  foundCart  =  await  db.cart.findUniqueOrThrow({
 	...query,
-	where: {
-	id: cartId,
+	where:  {
+		id:  cartId,
 };
 ```
