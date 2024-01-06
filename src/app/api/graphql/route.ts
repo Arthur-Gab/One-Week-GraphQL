@@ -10,7 +10,7 @@ export type MyContext = {
 	db: PrismaClient;
 };
 
-export const createContext = async (): Promise<MyContext> => ({
+const createContext = async (): Promise<MyContext> => ({
 	db,
 });
 

@@ -6,6 +6,8 @@ import { writeFileSync } from 'fs';
 
 // Import here all the typesDefs and Resolvers
 import './types/cart';
+import './types/cartItem';
+import './types/money';
 
 export const schema = builder.toSchema();
 

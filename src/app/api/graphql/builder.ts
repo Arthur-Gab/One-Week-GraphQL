@@ -11,7 +11,7 @@ import db from '@/lib/db';
 export const builder = new SchemaBuilder<{
 	PrismaTypes: PrismaTypes;
 	Scalars: {
-		ID: { Input: String; Output: String };
+		ID: { Input: string; Output: string };
 	};
 	Context: MyContext;
 }>({

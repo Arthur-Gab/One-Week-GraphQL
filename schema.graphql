@@ -6,10 +6,43 @@ type Cart {
   totalItems: Int!
 }
 
+type CartItem {
+  description: String
+  id: ID!
+  image: String
+  name: String!
+  quantity: Int!
+  subTotal: Money
+  unitTotal: Money
+}
+
+""""""
+type Money {
+  amount: Int
+  formatted: String
+}
+
 type Mutation {
+  """"""
+  addItemToCart(input: MutationAddItemToCartInput!): CartItem
   createCart: Cart!
 }
 
+input MutationAddItemToCartInput {
+  cartId: ID!
+  description: String
+  image: String
+  name: String!
+  price: Int!
+  quantity: Int!
+}
+
 type Query {
+  """"""
+  getCartByID(input: QueryGetCartByIDInput!): Cart
   greetings: String!
+}
+
+input QueryGetCartByIDInput {
+  cartId: ID!
 }
