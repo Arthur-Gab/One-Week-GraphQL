@@ -2,8 +2,8 @@
 
 Esta é uma API GraphQL para gerenciar um carrinho de compras e itens associados.
 
--   [Pré-requisitos](##-Pré-requisitos)
--   [Instalação](##-Instalação)
+-   [Pré-requisitos](##-pré-requisitos)
+-   [Instalação](##-instalação)
 -   [Tipos GraphQL](##-Tipos-GraphQL)
     -   [Money](###-Money)
     -   [CartItem](###-CartItem)
