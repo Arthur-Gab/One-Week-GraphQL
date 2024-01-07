@@ -3,22 +3,22 @@ import { builder } from '../builder';
 export const Money = builder.objectRef<Money>('Money');
 
 Money.implement({
-	description: ``,
+	description: 'Objeto que representa uma quantia monetária.',
 	fields: (t) => ({
 		formatted: t.string({
-			nullable: true, // Remove After implementation
-			resolve: (parent) => {
-				console.log(`Parent on money_formatted: `, parent);
-
-				return null;
+			description:
+				'O valor formatado da quantia monetária no formato de moeda brasileira (BRL).',
+			resolve: (parent: number) => {
+				return new Intl.NumberFormat('pt-BR', {
+					currency: 'BRL',
+					style: 'currency',
+				}).format(parent);
 			},
 		}),
 		amount: t.int({
-			nullable: true, // Remove After implementation
-			resolve: (parent) => {
-				console.log(`Parent on money_amount: `, parent);
-
-				return null;
+			description: 'O valor numérico da quantia monetária.',
+			resolve: (parent: number) => {
+				return parent;
 			},
 		}),
 	}),

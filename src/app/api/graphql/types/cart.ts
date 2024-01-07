@@ -2,14 +2,12 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { builder } from '../builder';
 import { GraphQLError } from 'graphql';
 import { Money } from './money';
-import { Cart } from '@prisma/client';
-import { includeForRefMap } from '@pothos/plugin-prisma/dts/util/datamodel';
-import { prismaModelName } from '@pothos/plugin-prisma';
 
 builder.mutationField('createCart', (t) =>
 	t.prismaField({
+		description: 'Mutação para criar um novo carrinho de compras.',
 		type: 'Cart',
-		resolve: async (query, _, __, { db }) => {
+		resolve: async (_, __, ___, { db }) => {
 			try {
 				return await db.cart.create({
 					data: {},
@@ -41,16 +39,18 @@ builder.mutationField('createCart', (t) =>
 
 builder.queryField('getCartByID', (t) =>
 	t.prismaFieldWithInput({
-		description: ``,
+		description:
+			'Consulta para obter um carrinho de compras com base no ID.',
 		input: {
-			cartId: t.input.id({ required: true }),
+			cartId: t.input.id({
+				required: true,
+				description: 'ID do carrinho de compras.',
+			}),
 		},
 		type: 'Cart',
 		nullable: true,
-		resolve: async (query, __, { input: { cartId } }, { db }) => {
+		resolve: async (query, _, { input: { cartId } }, { db }) => {
 			try {
-				console.log(query);
-
 				const findedCart = await db.cart.findUniqueOrThrow({
 					...query,
 					where: {
@@ -87,7 +87,7 @@ builder.prismaObject('Cart', {
 	description:
 		'Carrinho de compras, contendo seus items, o total de itens e o subtotal da compra',
 	// Add include to query on resolvers and type parent with these types
-	include: { items: true, _count: true },
+	include: { items: true },
 	fields: (t) => ({
 		id: t.exposeID('id', {
 			description: 'Identificador unico do Carrinho',
@@ -103,24 +103,23 @@ builder.prismaObject('Cart', {
 				return parent.items;
 			},
 		}),
-		totalItems: t.int({
+		itemsCount: t.int({
 			description: 'Quantidade Total de Itens adicionado ao carrinho',
 			resolve: async (parent) => {
-				// console.log(parent);
-				//@ts-ignore
-				// return parent._count.items;
-
-				return 0;
+				return parent.items.reduce((count: number, item) => {
+					return (count += item.quantity);
+				}, 0);
 			},
 		}),
-		// subTotal: t.field({
-		// 	description: 'Subtotal da compra dos itens adicionados ao carrinho',
-		// 	type: Money,
-		// 	nullable: true,
-		// 	resolve: async (parent) => {
-		// 		return parent.items.reduce();
-		// 	},
-		// }),
+		total: t.field({
+			description: 'Subtotal da compra dos itens adicionados ao carrinho',
+			type: Money,
+			resolve: async (parent) => {
+				return parent.items.reduce((count: number, item) => {
+					return (count += item.quantity * item.price);
+				}, 0);
+			},
+		}),
 	}),
 });
 

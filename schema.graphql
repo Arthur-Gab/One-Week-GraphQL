@@ -9,7 +9,10 @@ type Cart {
   items: [CartItem]!
 
   """Quantidade Total de Itens adicionado ao carrinho"""
-  totalItems: Int!
+  itemsCount: Int!
+
+  """Subtotal da compra dos itens adicionados ao carrinho"""
+  total: Money!
 }
 
 type CartItem {
@@ -24,8 +27,8 @@ type CartItem {
 
 """"""
 type Money {
-  amount: Int
-  formatted: String
+  amount: Int!
+  formatted: String!
 }
 
 type Mutation {

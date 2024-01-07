@@ -5,14 +5,28 @@ import { GraphQLError } from 'graphql/error/GraphQLError';
 
 builder.mutationField('addItemToCart', (t) =>
 	t.prismaFieldWithInput({
-		description: ``,
+		description: 'Mutação para adicionar um item ao carrinho de compras.',
 		input: {
-			cartId: t.input.id({ required: true }),
-			name: t.input.string({ required: true }),
-			price: t.input.int({ required: true }),
-			quantity: t.input.int({ required: true }),
-			description: t.input.string(),
-			image: t.input.string(),
+			cartId: t.input.id({
+				required: true,
+				description: 'ID do carrinho de compras.',
+			}),
+			name: t.input.string({
+				required: true,
+				description: 'Nome do item.',
+			}),
+			price: t.input.int({
+				required: true,
+				description: 'Preço do item.',
+			}),
+			quantity: t.input.int({
+				required: true,
+				description: 'Quantidade do item.',
+			}),
+			description: t.input.string({ description: 'Descrição do item.' }),
+			image: t.input.string({
+				description: 'URL da imagem associada ao item.',
+			}),
 		},
 		type: 'CartItem',
 		nullable: true,
@@ -51,37 +65,44 @@ builder.mutationField('addItemToCart', (t) =>
 );
 
 builder.prismaObject('CartItem', {
-	description: ``,
+	description: 'Objeto que representa um item no carrinho de compras.',
 	fields: (t) => ({
-		id: t.exposeID('id'),
-		name: t.exposeString('name'),
+		id: t.exposeID('id', {
+			description: 'Identificador único do item no carrinho.',
+		}),
+		name: t.exposeString('name', {
+			description: 'Nome do item no carrinho.',
+		}),
 		description: t.exposeString('description', {
+			description: 'Descrição do item no carrinho.',
 			nullable: true,
 		}),
-		quantity: t.exposeInt('quantity'),
+		quantity: t.exposeInt('quantity', {
+			description: 'Quantidade do item no carrinho.',
+		}),
 		image: t.exposeString('image', {
+			description: 'URL da imagem associada ao item no carrinho.',
 			nullable: true,
 		}),
 		unitTotal: t.field({
 			type: Money,
-			nullable: true, // Remove After implementation
+			description: 'Valor total para uma unidade do item no carrinho.',
+			nullable: true, // Remover após a implementação
 			resolve: (parent) => {
-				console.log(`Parent on cartItem_unitTotal`, parent);
-
-				return null;
+				return parent.price;
 			},
 		}),
 		subTotal: t.field({
 			type: Money,
-			nullable: true, // Remove After implementation
+			description: 'Valor total para a quantidade de itens no carrinho.',
+			nullable: true, // Remover após a implementação
 			resolve: (parent) => {
-				console.log(`Parent on cartItem_subTotal`, parent);
-
-				return null;
+				return parent.price * parent.quantity;
 			},
 		}),
 	}),
 });
+
 /**
 interface CartItem {
 	id: string;
