@@ -37,13 +37,13 @@ Certifique-se de ter Node.js e algum gerenciador de pacotes instalado na sua má
 2. Instale as dependências:
 
 ```bash
-   npm install
+	npm install
 ```
 
 3. Inicie o servidor:
 
 ```bash
-	npm start
+	start
 ```
 
 O <strong>servidor GraphQL</strong> estará rodando em [http://localhost:3000/api/graphql](http://localhost:3000/api/graphql).
