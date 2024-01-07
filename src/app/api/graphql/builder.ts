@@ -20,11 +20,11 @@ export const builder = new SchemaBuilder<{
 		client: db,
 	},
 });
-/////aaaaaa
-// Hello World from server
+
 builder.queryType({
 	fields: (t) => ({
 		greetings: t.string({
+			description: `Hello World do server.`,
 			resolve: () => 'Hello, from GraphQL on Next 14',
 		}),
 	}),

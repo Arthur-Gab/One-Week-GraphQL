@@ -114,6 +114,7 @@ builder.prismaObject('Cart', {
 		total: t.field({
 			description: 'Subtotal da compra dos itens adicionados ao carrinho',
 			type: Money,
+			//@ts-ignore
 			resolve: async (parent) => {
 				return parent.items.reduce((count: number, item) => {
 					return (count += item.quantity * item.price);
@@ -123,7 +124,7 @@ builder.prismaObject('Cart', {
 	}),
 });
 
-/**
+/*
 interface Cart {
 	id: string;
 	totalItems: number;

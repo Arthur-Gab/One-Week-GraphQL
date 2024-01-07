@@ -1,99 +1,217 @@
-# Pothos not passing include on Query
+# GraphQL API - Carrinho de Compras
 
-In my <strong>prismaObject</strong> of [Cart](./src/app/api/graphql/types/cart.ts) I have added the following line, however, the property <strong>\_count</strong > it is not being passed correctly to the <strong>query</strong> and in the resolvers when using a <strong>parent.\_count</strong>, I receive an <strong>undefined</strong> error.
+Esta é uma API GraphQL para gerenciar um carrinho de compras e itens associados.
+
+-   [Pré-requisitos](##Pré-requisitos)
+-   [Instalação](##Instalação)
+-   [Tipos GraphQL](##Tipos-GraphQL)
+    -   [Money](###Money)
+    -   [CartItem](###CartItem)
+    -   [Cart](###Cart)
+-   [Consultas e Mutações](##Consultas-e-Mutações)
+    -   [Consultar Carrinho por ID](###Consultar-Carrinho-por-ID)
+    -   [Adicionar Item ao Carrinho](###Adicionar-Item-ao-Carrinho)
+    -   [Atualizar Quantidade do Item no Carrinho](###Atualizar-Quantidade-do-Item-no-Carrinho)
+    -   [Deletar Item do Carrinho](###Deletar-Item-do-Carrinho)
+    -   [Criar Novo Carrinho](###Criar-Novo-Carrinho)
+-   [Erros Comuns](##Erros-Comuns)
+    -   [Falha ao Consultar o Carrinho por ID](###Falha-ao-Consultar-o-Carrinho-por-ID)
+    -   [Falha ao Adicionar Item ao Carrinho](###Falha-ao-Adicionar-Item-ao-Carrinho)
+    -   [Falha ao Atualizar Quantidade do Item no Carrinho](###Falha-ao-Atualizar-Quantidade-do-Item-no-Carrinho)
+    -   [Falha ao Deletar Item do Carrinho](###Falha-ao-Deletar-Item-do-Carrinho)
+    -   [Falha ao Criar Novo Carrinho](###Falha-ao-Criar-Novo-Carrinho)
+
+## Pré-requisitos
+
+Certifique-se de ter Node.js e algum gerenciador de pacotes instalado na sua máquina.
+
+## Instalação
+
+1. Clone o repositório:
 
 ```bash
-include:  {  items:  true,  _count:  true  }
+   git clone https://github.com/seu-usuario/sua-api-graphql.git
+   cd sua-api-graphql
 ```
 
-<strong>GraphQLEndpoint: http://localhost:3000/api/graphql</strong>
-
-## Context
+2. Instale as dependências:
 
 ```bash
-generator  client  {
-	provider  =  "prisma-client-js"
+   npm install
+```
+
+3. Inicie o servidor:
+
+```bash
+	npm start
+```
+
+O <strong>servidor GraphQL</strong> estará rodando em [http://localhost:3000/api/graphql](http://localhost:3000/api/graphql).
+O <strong>Frontend</strong> estará rodando em [http://localhost:3000](http://localhost:3000).
+
+## Tipos GraphQL
+
+### Money
+
+-   `formatted`: Valor formatado da quantia monetária no formato de moeda brasileira (BRL).
+-   `amount`: Valor numérico da quantia monetária.
+
+### CartItem
+
+-   `id`: Identificador único do item no carrinho.
+-   `name`: Nome do item no carrinho.
+-   `description`: Descrição do item no carrinho.
+-   `quantity`: Quantidade do item no carrinho.
+-   `image`: URL da imagem associada ao item no carrinho.
+-   `unitTotal`: Valor total para uma unidade do item no carrinho.
+-   `subTotal`: Valor total para a quantidade de itens no carrinho.
+
+### Cart
+
+-   `id`: Identificador único do carrinho de compras.
+-   `items`: Lista de itens no carrinho.
+-   `itemsCount`: Quantidade total de itens no carrinho.
+-   `total`: Subtotal da compra dos itens no carrinho.
+
+## Consultas e Mutações
+
+### Consultar Carrinho por ID
+
+```graphql
+query {
+	getCartByID(cartId: "seu-id-de-carrinho") {
+		id
+		items {
+			id
+			name
+			quantity
+		}
+		itemsCount
+		total {
+			formatted
+		}
+	}
 }
+```
 
-//  Generate  types  for  my  builder
-generator  pothos  {
-	provider  =  "prisma-pothos-types"
-}
+### Adicionar Item ao Carrinho
 
-datasource  db  {
-	provider  =  "postgresql"
-	url  =  env("POSTGRES_PRISMA_URL") //  use  connection  poolings
-	directUrl  =  env("POSTGRES_URL_NON_POOLING") //  use  a  direct  connection
-}
-
-model  Cart  {
-	id  String  @id  @default(uuid())
-	items  CartItem[]
-}
-
-model  CartItem  {
-	id  String  @default(uuid())
-	name  String
-	description  String?
-	price  Int
-	quantity  Int
-	imageString?
-
-	Cart  Cart  @relation(fields: [cartId], references: [id], onDelete: Cascade)
-	cartId  String
-
-	@@id([id,  cartId])
+```graphql
+mutation {
+	addItemToCart(
+		input: {
+			cartId: "seu-id-de-carrinho"
+			name: "Nome do Item"
+			price: 1000
+			quantity: 2
+			description: "Descrição do Item"
+			image: "URL da Imagem"
+		}
+	) {
+		id
+		name
+		quantity
+		unitTotal {
+			formatted
+		}
+		subTotal {
+			formatted
+		}
+	}
 }
 ```
 
-## What is this line supposed to do?
+### Atualizar Quantidade do Item no Carrinho
 
-1. Pass the keys and values defined in the include to the <strong>"query"</strong> parameters, as in the example below
-
-```bash
-resolve:  async (query, __,  {  input:  {  cartId  }  },  {  db  }) => {
-```
-
-2. Make it possible to add the query value to Prisma requests
-
-```bash
-const  foundCart  =  await  db.cart.findUniqueOrThrow({
-	...query,
-	//  and  so  on
+```graphql
+mutation {
+	updateItemQuantityIntoCart(
+		input: {
+			cartId: "seu-id-de-carrinho"
+			itemId: "seu-id-de-item"
+			newItemQuantity: 3
+		}
+	) {
+		id
+		name
+		quantity
+		subTotal {
+			formatted
+		}
+	}
 }
 ```
 
-3. Add to <strong>"parent"</strong> the typing of keys, values defined in the include, for example:
+### Deletar Item do Carrinho
 
-```bash
-items:  t.prismaField({
-	description:  'Items added to cart.',
-	type: ['CartItem'],
-	nullable:  {
-		list:  false,
-		items:  true,
-	},
-	resolve:  async (_, parent) =>  {
-		return parent.items; //  This  typing
-	},
-}),
+```graphql
+mutation {
+	deleteItemIntoCart(
+		input: { cartId: "seu-id-de-carrinho", itemId: "seu-id-de-item" }
+	) {
+		id
+		name
+		quantity
+		subTotal {
+			formatted
+		}
+	}
+}
 ```
 
-## What went wrong?
+### Criar Novo Carrinho
 
-In my include, I am passing <strong>\_count</strong>
-
-```bash
-include:  {  items:  true,  _count:  true  }
+```graphql
+mutation {
+	createCart {
+		id
+		items {
+			id
+			name
+			quantity
+		}
+		itemsCount
+		total {
+			formatted
+		}
+	}
+}
 ```
 
-However, it is not being passed to the <strong>query</strong> in the resolvers, you can check this occurrence in the file [cart.ts](./src/app/api/graphql/types/cart.ts) on line 52 where I execute the following console.log
+## Erros Comuns
 
-```bash
-console.log(query); //  Return  only  {include:  {items:  true}  }  --  Line  52
-const  foundCart  =  await  db.cart.findUniqueOrThrow({
-	...query,
-	where:  {
-		id:  cartId,
-};
-```
+### Falha ao Consultar o Carrinho por ID
+
+**Cenário:** O ID do carrinho fornecido não está registrado.
+**Mensagem de Erro:**
+Falha em encontrar o carrinho. O ID fornecido não está registrado. Tente criar um carrinho antes.
+
+### Falha ao Adicionar Item ao Carrinho
+
+**Cenário:** O ID do carrinho já está em uso.
+**Mensagem de Erro:**
+Falha em adicionar o Item ao Carrinho. Tente outra vez.
+
+### Falha ao Atualizar Quantidade do Item no Carrinho
+
+**Cenário:** A quantidade mínima permitida é 1.
+**Mensagem de Erro:** A atualização da quantidade do item falhou. A quantidade mínima permitida é 1. Para remover o item, utilize outros meios.
+
+**Cenário:** Os IDs informados não são válidos.
+**Mensagem de Erro:** Falha ao modificar a quantidade do item. Certifique-se de que os IDs informados são válidos e tente novamente.
+
+### Falha ao Deletar Item do Carrinho
+
+**Cenário:** Os IDs informados não são válidos.
+**Mensagem de Erro:** Falha ao deletar o item. Certifique-se de que os IDs informados são válidos e tente novamente.
+
+**Cenário:** O item não foi encontrado.
+**Mensagem de Erro:** Falha ao deletar o item. Certifique-se de que os IDs informados são válidos e tente novamente.
+
+### Falha ao Criar Novo Carrinho
+
+**Cenário:** O ID do novo carrinho já está em uso.
+**Mensagem de Erro:** Falha na criação do carrinho. Tente outra vez.
+
+**Cenário:** Ocorreu um erro inesperado.
+**Mensagem de Erro:** Ocorreu um erro inesperado. Tente outra vez.

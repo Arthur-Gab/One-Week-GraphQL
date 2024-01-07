@@ -15,43 +15,103 @@ type Cart {
   total: Money!
 }
 
+"""Objeto que representa um item no carrinho de compras."""
 type CartItem {
+  """Descrição do item no carrinho."""
   description: String
+
+  """Identificador único do item no carrinho."""
   id: ID!
+
+  """URL da imagem associada ao item no carrinho."""
   image: String
+
+  """Nome do item no carrinho."""
   name: String!
+
+  """Quantidade do item no carrinho."""
   quantity: Int!
-  subTotal: Money
-  unitTotal: Money
+
+  """Valor total para a quantidade de itens no carrinho."""
+  subTotal: Money!
+
+  """Valor total para uma unidade do item no carrinho."""
+  unitTotal: Money!
 }
 
-""""""
+"""Objeto que representa uma quantia monetária."""
 type Money {
+  """O valor numérico da quantia monetária."""
   amount: Int!
+
+  """
+  O valor formatado da quantia monetária no formato de moeda brasileira (BRL).
+  """
   formatted: String!
 }
 
 type Mutation {
-  """"""
+  """Mutação para adicionar um item ao carrinho de compras."""
   addItemToCart(input: MutationAddItemToCartInput!): CartItem
+
+  """Mutação para criar um novo carrinho de compras."""
   createCart: Cart!
+
+  """Mutação para deletar um item no carrinho de compras."""
+  deleteItemIntoCart(input: MutationDeleteItemIntoCartInput!): CartItem!
+
+  """Mutação para atualizar a quantidade de um item no carrinho de compras."""
+  updateItemQuantityIntoCart(input: MutationUpdateItemQuantityIntoCartInput!): CartItem!
 }
 
 input MutationAddItemToCartInput {
+  """ID do carrinho de compras."""
   cartId: ID!
+
+  """Descrição do item."""
   description: String
+
+  """URL da imagem associada ao item."""
   image: String
+
+  """Nome do item."""
   name: String!
+
+  """Preço do item."""
   price: Int!
+
+  """Quantidade do item."""
   quantity: Int!
 }
 
+input MutationDeleteItemIntoCartInput {
+  """ID do carrinho de compras."""
+  cartId: ID!
+
+  """ID do item no carrinho."""
+  itemId: ID!
+}
+
+input MutationUpdateItemQuantityIntoCartInput {
+  """ID do carrinho de compras."""
+  cartId: ID!
+
+  """ID do item no carrinho."""
+  itemId: ID!
+
+  """Nova quantidade desejada do item."""
+  newItemQuantity: Int!
+}
+
 type Query {
-  """"""
+  """Consulta para obter um carrinho de compras com base no ID."""
   getCartByID(input: QueryGetCartByIDInput!): Cart
+
+  """Hello World do server."""
   greetings: String!
 }
 
 input QueryGetCartByIDInput {
+  """ID do carrinho de compras."""
   cartId: ID!
 }
